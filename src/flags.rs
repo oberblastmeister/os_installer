@@ -5,6 +5,10 @@ xflags::xflags! {
         default cmd help {
             optional -h, --help
         }
+
+        /// Only install the packages
+        cmd install-packages {
+        }
     }
 }
 // generated start
@@ -18,7 +22,7 @@ pub struct Os_installer {
 #[derive(Debug)]
 pub enum Os_installerCmd {
     Help(Help),
-    Testing(Testing),
+    InstallPackages(InstallPackages),
 }
 
 #[derive(Debug)]
@@ -27,7 +31,7 @@ pub struct Help {
 }
 
 #[derive(Debug)]
-pub struct Testing;
+pub struct InstallPackages;
 
 impl Os_installer {
     pub const HELP: &'static str = Self::HELP_;
