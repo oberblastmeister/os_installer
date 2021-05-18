@@ -1,7 +1,7 @@
+mod bars;
 mod flags;
 mod inputs;
 mod packages;
-mod bars;
 
 use std::process;
 
@@ -65,13 +65,19 @@ fn manual_install(pkg: &str, inputs: &Inputs) -> Result<()> {
     Ok(())
 }
 
-fn add_user(inputs: &Inputs) -> Result<()> {
-    let Inputs { username, password: Secret { inner: password }, .. } = inputs;
-
+fn add_user(Inputs { username, password: Secret { inner: password }, .. }: &Inputs) -> Result<()> {
     println!("Adding user {}", username);
     cmd!("useradd --create-home --groups wheel --shell /bin/zsh '{username}'").wait()?;
     cmd_!("chpasswd").stdin(format!("{}\n", password)).run()?;
 
+    Ok(())
+}
+
+fn set_root_password(
+    Inputs { root_password: Secret { inner: root_password }, .. }: &Inputs,
+) -> Result<()> {
+    println!("Setting root password");
+    cmd_!("passwd").stdin(format!("{}\n{}\n", root_password, root_password)).run()?;
     Ok(())
 }
 
@@ -150,6 +156,7 @@ fn try_main() -> Result<()> {
     install_needed(&inputs)?;
     install_aur_helper(&inputs)?;
     add_user(&inputs)?;
+    set_root_password(&inputs)?;
     packages.install(&inputs)?;
     clone_dotfiles(DOTFILES, &inputs)?;
     finish();
