@@ -156,7 +156,7 @@ fn try_main() -> Result<()> {
     install_needed(&inputs)?;
     install_aur_helper(&inputs)?;
     add_user(&inputs)?;
-    set_root_password(&inputs)?;
+    // set_root_password(&inputs)?;
     packages.install(&inputs)?;
     clone_dotfiles(DOTFILES, &inputs)?;
     finish();
