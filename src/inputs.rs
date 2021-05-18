@@ -27,13 +27,17 @@ pub struct Inputs {
     pub root_password: Secret<String>,
 }
 
+fn get_username() -> Result<String> {
+    Ok(Input::new().with_prompt("Username").interact()?)
+}
+
 impl Inputs {
     pub fn get() -> Result<Inputs> {
         const MISMATCH_ERR: &str = "The passwords did not match";
 
         println!("I need some inputs before we start the install");
 
-        let username = Input::new().with_prompt("Username").interact()?;
+        let username = get_username()?;
 
         let hostname = Input::new().with_prompt("Network Hostname").interact()?;
 

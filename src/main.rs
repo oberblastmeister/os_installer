@@ -7,6 +7,7 @@ use std::process;
 
 use anyhow::{bail, Result};
 use dialoguer::Confirm;
+use flags::{Os_installer, Os_installerCmd};
 use inputs::{Inputs, Secret};
 use xshell::{pushd, rm_rf};
 
@@ -145,6 +146,8 @@ fn try_main() -> Result<()> {
         bail!("You must be running as root");
     }
 
+    let flags = Os_installer::from_env()?;
+
     let inputs = Inputs::get()?;
 
     let packages = Packages::from_slice(PACKAGES)?;
@@ -153,13 +156,25 @@ fn try_main() -> Result<()> {
         return Ok(());
     }
 
-    install_needed(&inputs)?;
-    install_aur_helper(&inputs)?;
-    add_user(&inputs)?;
-    // set_root_password(&inputs)?;
-    packages.install(&inputs)?;
-    clone_dotfiles(DOTFILES, &inputs)?;
+    match flags.subcommand {
+        Os_installerCmd::InstallPackages(_) => {
+            packages.install(&inputs)?;
+
+        }
+        Os_installerCmd::InstallAll(_) => {
+            install_needed(&inputs)?;
+            install_aur_helper(&inputs)?;
+            add_user(&inputs)?;
+            // set_root_password(&inputs)?;
+            clone_dotfiles(DOTFILES, &inputs)?;
+        }
+        Os_installerCmd::Help(_) => {
+            println!("{}", Os_installer::HELP);
+        }
+    }
+
     finish();
+
 
     Ok(())
 }

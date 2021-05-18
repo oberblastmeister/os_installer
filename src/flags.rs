@@ -9,6 +9,9 @@ xflags::xflags! {
         /// Only install the packages
         cmd install-packages {
         }
+
+        cmd install-all {
+        }
     }
 }
 // generated start
@@ -23,6 +26,7 @@ pub struct Os_installer {
 pub enum Os_installerCmd {
     Help(Help),
     InstallPackages(InstallPackages),
+    InstallAll(InstallAll),
 }
 
 #[derive(Debug)]
@@ -32,6 +36,9 @@ pub struct Help {
 
 #[derive(Debug)]
 pub struct InstallPackages;
+
+#[derive(Debug)]
+pub struct InstallAll;
 
 impl Os_installer {
     pub const HELP: &'static str = Self::HELP_;
