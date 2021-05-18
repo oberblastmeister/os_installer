@@ -1,0 +1,80 @@
+name: release
+on:
+  schedule:
+  - cron: '0 0 * * *' # midnight UTC
+
+  push:
+    branches:
+    - release
+    - trigger-nightly
+
+jobs:
+  build-release:
+    name: build-release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: ${{ matrix.target }}
+        profile: minimal
+        override: true
+
+    - name: Build
+      run: cargo build --release
+
+    - name: Package
+      shell: bash
+      run: |
+        cp "target/release/os_installer" "os_installer"
+        tar czf os_installer.tar.gz os_installer
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist
+        path: os_installer.tar.gz
+
+  create-release:
+    name: create-release
+    runs-on: ubuntu-latest
+    needs: ['build-release']
+
+    steps:
+    - run: echo "TAG=$(date --iso -u)" >> $GITHUB_ENV
+      if: github.ref == 'refs/heads/release'
+
+    - run: echo "TAG=nightly" >> $GITHUB_ENV
+      if: github.ref != 'refs/heads/release'
+
+    - run: 'echo "TAG: $TAG"'
+
+    - name: Make directories
+      run: mkdir dist
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        # download dist to directory named dist
+        name: dist
+        path: dist
+
+    - name: List downloaded files
+      run: |
+        contents=$(find dist -maxdepth 1 | tail -n +2 | paste -sd " ")
+        echo "CONTENTS=$contents" >> $GITHUB_ENV
+        echo "${{ env.CONTENTS }}"
+
+    - name: Release
+      uses: meeDamian/github-release@2.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ env.TAG }}
+        files: ${{ env.CONTENTS }}
+        allow_override: true
+        gzip: false

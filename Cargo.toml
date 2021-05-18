@@ -11,6 +11,8 @@ anyhow = "1.0.40"
 dialoguer = "0.8.0"
 indicatif = "0.16.0"
 regex = "1.5.4"
+serde = { version = "1.0.126", features = ["derive"] }
+serde_yaml = "0.8.17"
 sudo = "0.6.0"
 xflags = "0.2.1"
 xshell = "0.1.12"

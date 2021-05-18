@@ -1,0 +1,360 @@
+packages:
+  # xorg-apps
+  - name: xorg
+
+  # needed xdg stuff
+  - name: xdg-user-dirs
+  - name: xdg-user-dirs-gtk
+
+  # bspwm
+  - name: bspwm
+  - name: sxhkd
+
+  # awesome
+  - name: awesome
+  - name: lain-git
+    aur: true
+  - name: awesome-revelation-git
+    aur: true
+
+  # xmonad
+  - name: xmonad
+  - name: xmonad-contrib
+
+  # git
+  - name: github-cli
+
+  - name: unclutter
+  - name: libnotify
+
+  # audio
+  - name: pulseaudio
+  - name: pulseaudio-alsa
+  - name: pulseaudio-bluetooth
+  - name: pulsemixer
+  - name: pamixer
+  - name: alsa-utils # includes alsamixer
+  - name: pavucontrol
+
+  # bluetooth
+  - name: bluez
+  - name: bluez-utils
+  - name: blueman # bluetooth gui
+
+  - name: dunst
+  - name: gnome-keyring
+  - name: acpid
+
+  # network
+  - name: networkmanager
+  - name: nm-connection-editor
+  - name: network-manager-applet
+
+  # lightdm
+  - name: lightdm
+  - name: lightdm-gtk-greeter
+  - name: lightdm-webkit2-greeter
+  - name: lightdm-webkit-theme-litarvan
+  - name: lightdm-webkit2-theme-glorious
+    aur: true
+  - name: betterlockscreen
+    aur: true
+
+  # polybar
+  - name: polybar
+    aur: true
+
+  # themes
+  - name: papirus-icon-theme
+  - name: adpata-gtk-theme
+  - name: mcmojave-cursors
+    aur: true
+  - name: lxappearance
+  - name: kvantum-qt5
+
+  # fonts
+  - name: noto-fonts
+  - name: ttf-roboto
+  - name: nerd-fonts-fira-code
+    aur: true
+  - name: nerd-fonts-iosevka
+    aur: true
+  - name: noto-fonts-emoji # emoji fonts
+
+  # pacman
+  - name: pkgstats # send pacakge info to arch linux
+
+  # terminal utilities
+  - name: lf-bin # lf file manager
+    aur: true
+  - name: neofetch
+  - name: onefetch-bin
+    aur: true
+  - name: direnv
+    aur: true
+  - name: fzf
+  - name: fd # find, needed for fzf
+
+  - name: bat # cat, needed for fzf
+  - name: bat-extras-git
+    aur: true
+  - name: entr # needed for bat-extras
+
+  - name: exa # ls
+  - name: dust-bin
+    aur: true
+  - name: ripgrep           # better grep, needed for fzf
+  - name: ripgrep-all-bin # ripgrep in pdf files
+    aur: true
+  - name: broot
+  - name: bottom-bin
+    aur: true
+  - name: zoxide
+    aur: true
+  - name: googler
+    aur: true
+  - name: buku
+    aur: true
+  - name: pandoc # convert different files
+  - name: cronie # cron jobs
+  - name: git-delta-bin
+    aur: true
+  - name: translate-shell
+  - name: speedtest-cli
+  - name: cht.sh
+    aur: true
+
+  # neovim
+  - name: neovim
+  - name: neovim-remote
+    aur: true
+  - name: python-pynvim
+  - name: nodejs
+  - name: nodejs-neovim
+    aur: true
+
+  # other editor
+  - name: micro-bin
+    aur: true
+
+  # vscode
+  - name: code
+
+  # clipboard stuff
+  - name: xclip # clipboard integration for neovim
+  - name: xsel  # needed for cht.sh
+
+  # dual keyboard mappings
+  - name: xcape
+
+  # language package managers
+  - name: python-pip
+  - name: bpython
+  - name: ipython
+
+  # shell stuff
+  - name: tmux
+  - name: kitty
+  # zsh prompt
+  - name: starship-bin
+    aur: true
+
+  # mount and unmount mangement
+  - name: udiskie
+
+  # viewers
+  - name: feh     # background setter and image viewer
+  - name: sxiv    # image
+  - name: zathura # pdf
+  - name: zathura-pdf-mupdf
+  - name: mpv # video
+
+  # cli viewers/openers
+  - name: glow-bin         # markdown
+    aur: true
+  - name: highlight          # syntax highlight
+  - name: atool              # view archive files
+  - name: unrar              # view rar files
+  - name: python-pdftotext # view pdf files in text
+    aur: true
+  - name: odt2txt            # view odt files in text
+  - name: w3m                # view html files
+  - name: mediainfo          # get info for media files
+  - name: file               # view mime type of file
+  - name: python-xlsx2csv  # convert xlsx file to csv to view
+    aur: true
+  - name: jq                 # view json files and manipulate on command line
+  - name: catdoc             # view microsoft word and powerpoint files
+  - name: archiver         # cross platform archiver
+    aur: true
+
+  # important for multimonitor
+  - name: autorandr
+  - name: arandr
+
+  # gui stuff
+  - name: firefox
+  - name: brave-bin
+    aur: true
+  - name: gource # git repo viewer
+  - name: nautilus
+  - name: flameshot
+  - name: peek                 # gifs
+  - name: gnome-sound-recorder # sound recording
+  - name: xfce4-power-manager  # power management gui
+  - name: xob
+    aur: true
+  - name: dragon-drag-and-drop
+    aur: true
+  - name: syncthing
+  - name: syncthing-gtk
+  - name: system-system-config-printer
+  - name: fontpreview
+    aur: true
+
+  # compositor
+  - name: picom
+
+  # music
+  - name: mopidy
+  - name: ncmpcpp
+
+  # blue light filter
+  - name: redshift
+
+  # rofi stuff
+  - name: rofi
+  - name: buku_run
+    aur: true
+  - name: rofi-greenclip
+    aur: true
+
+  # c
+  - name: clang
+
+  # haskell
+  - name: ghc
+  - name: stack
+  - name: ghc-static
+
+  # rust
+  - name: rustup
+  - name: stable=RT
+  - name: beta=RT
+  - name: nightly=RT
+
+  # clojure
+  - name: clojure
+  - name: leiningen
+  - name: babashka-bin
+    aur: true
+
+  # cargo subcommands
+  - name: cargo-watch
+  - name: cargo-edit
+  - name: cargo-audit
+  - name: cargo-outdated
+  - name: cross # cross compile packages
+    aur: true
+  - name: cargo-aur-bin
+    aur: true
+  - name: cargo-expand
+    aur: true
+
+  # langauge servers
+
+  - name: lua-language-server-git # neovim dev
+    aur: true
+  - name: vim-language-server     # vimscript dev
+    aur: true
+
+  - name: microsoft-python-language-server
+    aur: true
+
+  - name: python-language-server
+  - name: python-pyflakes    # better linter than pylint
+  - name: python-pylint      # outdated linter
+  - name: python-mccabe      # complexity checker
+  - name: python-rope        # python refractoring
+  - name: python-pycodestyle # python code style checking
+  - name: python-pydocstyle  # python doc style checking
+  # python formatters
+  - name: autopep8
+  - name: yapf
+  - name: mypy        # normal python typechecker
+  - name: pyls-mypy # plugin for lang server
+    aur: true
+  - name: pyright   # microsoft python typechecker, faster
+    aur: true
+
+  - name: jedi-language-server # language server for python based of jedi
+
+  - name: vscode-json-languageserver-bin
+    aur: true
+  - name: yaml-language-server-bin
+    aur: true
+
+  - name: gopls
+    aur: true
+  - name: haskell-language-server-bin
+    aur: true
+  - name: rust-analyzer
+
+  - name: texlab # latex
+  - name: bash-language-server
+  - name: clojure-lsp-bin
+    aur: true
+  - name: jdtls
+    aur: true
+
+  # webdev servers
+  - name: typescript-language-server-bin
+    aur: true
+  - name: vscode-html-languageserver-bin
+    aur: true
+  - name: vscode-css-languageserver-bin
+    aur: true
+
+  # linting and format tools
+  - name: efm-langserver
+  - name: diagnostic-languageserver
+    aur: true
+  - name: vint
+
+  # sh
+  - name: shellcheck
+  - name: shfmt
+
+  # lua
+  - name: lua-format
+    aur: true
+
+  # c and cpp
+  - name: python-cpplint
+  - name: cppcheck
+
+  # haskell
+  - name: hlint
+
+  # serialization
+  - name: yamllint
+
+  # latex
+  - name: textidote-bin
+    aur: true
+
+  # webdev
+  - name: eslint
+  - name: prettier
+
+  # writing checkers
+  - name: languagetool
+  - name: nodejs-markdownlint-cli
+    aur: true
+  - name: write-good
+    aur: true
+
+services:
+  - name: NetworkManager
+  - name: bluetooth
+  - name: lightdm

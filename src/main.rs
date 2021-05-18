@@ -1,128 +1,164 @@
-use std::{io::{BufRead, BufReader}, process::{self, Child, ChildStderr, ChildStdout}, thread, time::Duration};
+mod flags;
+mod inputs;
+mod packages;
+mod bars;
+
+use std::process;
 
 use anyhow::{bail, Result};
-use dialoguer::Input;
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use process::{Command, Stdio};
-use xshell::cmd;
+use dialoguer::Confirm;
+use inputs::{Inputs, Secret};
+use xshell::{pushd, rm_rf};
 
-// struct Child {
-//     stdout: ChildStdout,
-//     stderr: ChildStderr,
-// }
+use packages::Packages;
+
+const PACKAGES: &[u8] = include_bytes!(concat!(project_root!(), "/assets/packages.yaml"));
+const DOTFILES: &str = "https://github.com/oberblastmeister/dotfiles.git";
+
+macro_rules! _cmd {
+    ($( $stuff:tt )*) => {{
+        use std::process::{Command, Stdio};
+        let mut cmd: Command = xshell::cmd!($( $stuff )*).into();
+        cmd.stdout(Stdio::piped());
+        cmd.stderr(Stdio::piped());
+        cmd.spawn()?
+    }}
+}
+pub(crate) use _cmd as cmd;
+
+macro_rules! _cmd_ {
+    ($( $stuff:tt )*) => {
+        xshell::cmd!($( $stuff )*)
+    };
+}
+pub(crate) use _cmd_ as cmd_;
+
+macro_rules! _project_root {
+    () => {
+        env!("CARGO_MANIFEST_DIR")
+    };
+}
+pub(crate) use _project_root as project_root;
 
 fn is_root() -> bool {
     sudo::check() == sudo::RunningAs::Root
 }
 
-fn install_pkg(pkg: &str) -> Result<Child> {
-    let mut cmd: Command = cmd!("pacman --noconfirm --needed -S {pkg}").into();
-    cmd.stdout(Stdio::piped());
-    cmd.stderr(Stdio::piped());
-    Ok(cmd.spawn()?)
+fn install_pkg(pkg: &str) -> Result<()> {
+    cmd!("pacman --noconfirm --needed -S {pkg}").wait()?;
+    Ok(())
 }
 
-fn set_user_and_pass() -> Result<()> {
-    let input: String = Input::new().with_prompt("Username").interact()?;
+fn aur_install(pkg: &str, Inputs { username, .. }: &Inputs) -> Result<()> {
+    cmd!("sudo -u {username} yay --noconfirm -S {pkg}").wait()?;
+    Ok(())
+}
+
+fn manual_install(pkg: &str, inputs: &Inputs) -> Result<()> {
+    let _d = pushd("/tmp");
+    let _ = rm_rf(pkg);
+    let Inputs { username, .. } = inputs;
+    cmd!("sudo -u {username} git clone https://aur.archlinux.org/{pkg}.git").wait()?;
+    let _d = pushd(pkg);
+    cmd!("sudo -u {username} makepkg --noconfirm -si").wait()?;
 
     Ok(())
 }
 
-fn get_style() -> ProgressStyle {
-    ProgressStyle::default_bar()
-        .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
-        .progress_chars("##-")
-}
+fn add_user(inputs: &Inputs) -> Result<()> {
+    let Inputs { username, password: Secret { inner: password }, .. } = inputs;
 
-fn pipe_into(mut child: Child, bar: &ProgressBar) -> Result<()> {
-    let stdout = BufReader::new(child.stdout.take().unwrap());
-    let stderr = BufReader::new(child.stderr.take().unwrap());
-
-    for line in stdout.lines() {
-        bar.set_message(line?);
-    }
-
-    child.wait()?;
+    println!("Adding user {}", username);
+    cmd!("useradd --create-home --groups wheel --shell /bin/zsh '{username}'").wait()?;
+    cmd_!("chpasswd").stdin(format!("{}\n", password)).run()?;
 
     Ok(())
 }
 
-const NEEDED: [&str; 5] = ["iw", "sudo", "curl", "base-devel", "git"];
+const NEEDED: [&str; 4] = ["sudo", "curl", "base-devel", "git"];
 
-fn install_needed_task(bar: ProgressBar) -> Result<()> {
+fn install_needed(inputs: &Inputs) -> Result<()> {
+    let bar = bars::blue();
     bar.set_length(NEEDED.len() as u64);
 
     for needed in NEEDED.iter() {
-        install_pkg(needed)?.wait()?;
         bar.set_message(format!("Installing {}", needed));
+        install_pkg(needed)?;
         bar.inc(1);
     }
+
+    bar.finish_with_message("Finished installing needed packages");
 
     Ok(())
 }
 
-pub type TaskFun = Box<dyn FnOnce(ProgressBar) -> Result<()> + Send>;
+fn clone_dotfiles(dotfiles_url: &str, Inputs { username, .. }: &Inputs) -> Result<()> {
+    let bar = bars::loading();
+    bar.set_message("Cloning dotfiles");
 
-struct Task {
-    fun: TaskFun,
-    bar: ProgressBar,
+    cmd!("sudo -u {username} yadm clone {dotfiles_url} --no-bootstrap").wait()?;
+    cmd!("sudo -u {username} yadm alt").wait()?;
+
+    bar.finish_with_message("Finished cloneing dotfiles");
+
+    Ok(())
 }
 
-impl Task {
-    fn new(fun: TaskFun) -> Self {
-        let bar = ProgressBar::new(0);
-        bar.set_style(get_style());
-        Self { fun, bar }
-    }
+fn install_aur_helper(inputs: &Inputs) -> Result<()> {
+    let spinner = bars::loading();
+    spinner.set_message("Installing aur helper");
 
-    fn run(self) -> Result<()> {
-        (self.fun)(self.bar)
-    }
+    manual_install("yay-bin", inputs)?;
+
+    spinner.finish_with_message("Finished installing aur helper");
+
+    Ok(())
 }
 
-struct App {
-    style: ProgressStyle,
-    progress: MultiProgress,
-    tasks: Vec<Task>,
+fn confirm_install(input: &Inputs) -> Result<bool> {
+    println!("These are the inputs that you gave:\n\n{:#?}", input);
+
+    Ok(Confirm::new()
+        .with_prompt(
+            "Are you sure you want to continue with the install?
+This will override everything for this user",
+        )
+        .interact()?)
 }
 
-impl App {
-    fn new() -> App {
-        App {
-            style: ProgressStyle::default_bar()
-                .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
-                .progress_chars("##-"),
-            progress: MultiProgress::new(),
-            tasks: Vec::new(),
-        }
+fn confirm_install2() -> Result<bool> {
+    Ok(Confirm::new().with_prompt("Are you really sure you want to install?").interact()?)
+}
+
+fn finish() {
+    println!("The installation is completed");
+}
+
+fn try_main() -> Result<()> {
+    if !is_root() {
+        bail!("You must be running as root");
     }
 
-    fn add_task(mut self, task_fun: TaskFun) -> App {
-        let mut task = Task::new(task_fun);
-        // task.bar = self.progress.add(task.bar);
-        self.tasks.push(task);
-        self
+    let inputs = Inputs::get()?;
+
+    let packages = Packages::from_slice(PACKAGES)?;
+
+    if !confirm_install(&inputs)? || !confirm_install2()? {
+        return Ok(());
     }
 
-    fn run(self) -> Result<()> {
-        if !is_root() {
-            bail!("You must be running as root.");
-        }
+    install_needed(&inputs)?;
+    install_aur_helper(&inputs)?;
+    add_user(&inputs)?;
+    packages.install(&inputs)?;
+    clone_dotfiles(DOTFILES, &inputs)?;
+    finish();
 
-        for task in self.tasks {
-            task.run()?;
-        }
-
-        // self.progress.join_and_clear()?;
-        self.progress.join()?;
-
-        Ok(())
-    }
+    Ok(())
 }
 
 fn main() {
-    let res = App::new().add_task(Box::new(install_needed_task)).run();
-    match res {
+    match try_main() {
         Ok(()) => process::exit(0),
         Err(e) => {
             eprintln!("{:?}", e);
