@@ -68,7 +68,7 @@ fn manual_install(pkg: &str, inputs: &Inputs) -> Result<()> {
 fn add_user(Inputs { username, password: Secret { inner: password }, .. }: &Inputs) -> Result<()> {
     println!("Adding user {}", username);
     cmd!("useradd --create-home --groups wheel --shell /bin/zsh '{username}'").wait()?;
-    cmd_!("chpasswd").stdin(format!("{}\n", password)).run()?;
+    // cmd_!("chpasswd").stdin(format!("{}\n", password)).run()?;
 
     Ok(())
 }
