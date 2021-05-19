@@ -22,9 +22,9 @@ impl<T> fmt::Debug for Secret<T> {
 #[derive(Debug)]
 pub struct Inputs {
     pub username: String,
-    pub hostname: String,
-    pub password: Secret<String>,
-    pub root_password: Secret<String>,
+    // pub hostname: String,
+    // pub password: Secret<String>,
+    // pub root_password: Secret<String>,
 }
 
 impl Inputs {
@@ -35,22 +35,6 @@ impl Inputs {
 
         let username = Input::new().with_prompt("Username").interact()?;
 
-        let hostname = Input::new().with_prompt("Network Hostname").interact()?;
-
-        let password = Secret::new(
-            Password::new()
-                .with_prompt("Password")
-                .with_confirmation("Password again", MISMATCH_ERR)
-                .interact()?,
-        );
-
-        let root_password = Secret::new(
-            Password::new()
-                .with_prompt("Root Password")
-                .with_confirmation("Root Password again", MISMATCH_ERR)
-                .interact()?,
-        );
-
-        Ok(Self { username, hostname, password, root_password })
+        Ok(Self { username })
     }
 }

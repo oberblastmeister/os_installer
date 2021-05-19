@@ -5,8 +5,9 @@ mod packages;
 
 use std::process;
 
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use dialoguer::Confirm;
+use flags::{Os_installer, Os_installerCmd};
 use inputs::{Inputs, Secret};
 use xshell::{pushd, rm_rf};
 
@@ -65,25 +66,35 @@ fn manual_install(pkg: &str, inputs: &Inputs) -> Result<()> {
     Ok(())
 }
 
-fn add_user(Inputs { username, password: Secret { inner: password }, .. }: &Inputs) -> Result<()> {
+fn add_user(Inputs { username, .. }: &Inputs) -> Result<()> {
     println!("Adding user {}", username);
+
     cmd!("useradd --create-home --groups wheel --shell /bin/zsh '{username}'").wait()?;
-    cmd_!("chpasswd").stdin(format!("{}\n", password)).run()?;
+    // cmd_!("chpasswd").stdin(format!("{}\n", password)).run()?;
+
+    // let password = Password::new()
+    //     .with_prompt("Password")
+    //     .with_confirmation("Password again", "The passwords did not match")
+    //     .interact()?;
+
+    println!("Setting the password of the user");
+
+    // cmd_!("chpasswd").stdin(format!("{}:{}\n", username, password)).run()?;
 
     Ok(())
 }
 
-fn set_root_password(
-    Inputs { root_password: Secret { inner: root_password }, .. }: &Inputs,
-) -> Result<()> {
-    println!("Setting root password");
-    cmd_!("passwd").stdin(format!("{}\n{}\n", root_password, root_password)).run()?;
-    Ok(())
-}
+// fn set_root_password(
+//     Inputs { root_password: Secret { inner: root_password }, .. }: &Inputs,
+// ) -> Result<()> {
+//     println!("Setting root password");
+//     cmd_!("passwd").stdin(format!("{}\n{}\n", root_password, root_password)).run()?;
+//     Ok(())
+// }
 
-const NEEDED: [&str; 4] = ["sudo", "curl", "base-devel", "git"];
+const NEEDED: [&str; 6] = ["sudo", "curl", "base-devel", "git", "bash", "zsh"];
 
-fn install_needed(inputs: &Inputs) -> Result<()> {
+fn install_needed() -> Result<()> {
     let bar = bars::blue();
     bar.set_length(NEEDED.len() as u64);
 
@@ -153,12 +164,27 @@ fn try_main() -> Result<()> {
         return Ok(());
     }
 
-    install_needed(&inputs)?;
-    install_aur_helper(&inputs)?;
-    add_user(&inputs)?;
-    set_root_password(&inputs)?;
-    packages.install(&inputs)?;
-    clone_dotfiles(DOTFILES, &inputs)?;
+    match flags.subcommand {
+        Os_installerCmd::InstallPackages(_) => {
+            let Inputs { username, .. } = &inputs;
+            cmd_!("id {username}").run().context("no user was found")?;
+
+            install_needed()?;
+            install_aur_helper(&inputs)?;
+            packages.install(&inputs)?;
+        }
+        Os_installerCmd::InstallAll(_) => {
+            install_needed()?;
+            install_aur_helper(&inputs)?;
+            add_user(&inputs)?;
+            // set_root_password(&inputs)?;
+            clone_dotfiles(DOTFILES, &inputs)?;
+        }
+        Os_installerCmd::Help(_) => {
+            println!("{}", Os_installer::HELP);
+        }
+    }
+
     finish();
 
     Ok(())
